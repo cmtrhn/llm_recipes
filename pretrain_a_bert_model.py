@@ -312,7 +312,6 @@ class BERTPretrainingModel(pl.LightningModule):
 
         # Predict
         with torch.no_grad():
-            # Assuming the model returns NSP predictions first
             nsp_prediction, _ = self.bert(tokens_tensor, segment_tensor)
             # Select the first element (first sequence) of the logits tensor
             first_logits = nsp_prediction[0].unsqueeze(0)  # Adds an extra dimension, making it [1, 2]
