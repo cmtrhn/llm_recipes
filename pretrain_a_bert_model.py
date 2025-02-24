@@ -49,8 +49,6 @@ class PositionalEncoding(nn.Module):
         Returns:
             Tensor: Positional-encoded embeddings of the same shape as input.
         """
-        # Add positional encodings to the input tensor
-        #x = x + self.pos_encoding[:x.size(0), :]
         x = x + self.pos_encoding[:, :x.size(1), :]
         return self.dropout(x)
 
