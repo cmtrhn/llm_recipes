@@ -1,3 +1,15 @@
 # llm_recipes
 Here is a little showcase of few recipes on how to use Large Language Models (LLM)
 PyTorch Lightning is utilized for training module
+
+install the requirements.txt
+
+To train a translation model using Multi30K dataset and Seq2Seq Transformer
+```
+python train_a_translation_model.py --output 'address to your checkpoint output folder' --epochs 300
+```
+
+To get results from trained translation model
+```
+python train_a_translation_model.py --infer --checkpoint 'address to your checkpoint file'
+```
