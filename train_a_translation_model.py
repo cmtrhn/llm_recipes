@@ -271,5 +271,3 @@ if __name__ == "__main__":
         trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
     else:
         infer(args.checkpoint)
-
-    print(translate(model, dataset, "Eine weiße Katze rennt auf der Straße ."))
