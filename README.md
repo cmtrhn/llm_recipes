@@ -13,3 +13,15 @@ To get results from trained translation model
 ```
 python train_a_translation_model.py --infer --checkpoint 'address to your checkpoint file'
 ```
+
+To train a freshly defined BERT model with Masked Language Modelling and Next Sentence Prediction targets created from IMDB dataset
+
+```
+python pretrain_a_bert_model.py --output 'address to your checkpoint output folder' --epochs 300
+```
+
+To get results for NSP and MLM
+
+```
+python pretrain_a_bert_model.py --infer --checkpoint 'address to your checkpoint file'
+```
