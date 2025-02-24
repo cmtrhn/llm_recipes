@@ -16,20 +16,6 @@ from nltk.corpus import wordnet
 import nltk
 nltk.download('wordnet')
 
-EMBEDDING_DIM = 10
-
-
-# Token Embedding
-class TokenEmbedding(nn.Module):
-    def __init__(self, vocab_size: int, embedding_dim: int):
-        super(TokenEmbedding, self).__init__()
-        self.embedding = nn.Embedding(vocab_size, embedding_dim)
-        self.scale = torch.sqrt(torch.tensor(embedding_dim))
-
-    def forward(self, tokens: torch.Tensor):
-        self.embedding.to('cuda')
-        return self.embedding(tokens) * self.scale
-
 
 class PositionalEncoding(nn.Module):
     def __init__(self, embedding_dim: int, dropout: float = 0.1, max_len: int = 5000):
@@ -67,6 +53,19 @@ class PositionalEncoding(nn.Module):
         #x = x + self.pos_encoding[:x.size(0), :]
         x = x + self.pos_encoding[:, :x.size(1), :]
         return self.dropout(x)
+
+
+# Token Embedding
+class TokenEmbedding(nn.Module):
+    def __init__(self, vocab_size: int, embedding_dim: int):
+        super(TokenEmbedding, self).__init__()
+        self.embedding = nn.Embedding(vocab_size, embedding_dim)
+        self.scale = torch.sqrt(torch.tensor(embedding_dim))
+
+    def forward(self, tokens: torch.Tensor):
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self.embedding.to('device')
+        return self.embedding(tokens) * self.scale
 
 
 class BERTEmbedding(nn.Module):
@@ -356,24 +355,25 @@ if __name__ == "__main__":
     data_module = IMDbDataModule(tokenizer=bert_tokenizer, batch_size=128, max_len=128)
     model = BERTPretrainingModel(vocab_size=bert_tokenizer.vocab_size, lr=5e-5)
     if not args.infer:
-      checkpoint_callback = ModelCheckpoint(monitor="val_loss", filename="pre_tra", save_top_k=1, mode="min", dirpath=args.output)
-      trainer = pl.Trainer(
+        checkpoint_callback = ModelCheckpoint(monitor="val_loss", filename="pre_tra", save_top_k=1, mode="min", dirpath=args.output)
+        trainer = pl.Trainer(
           max_epochs=args.epochs, 
           accelerator='gpu' if torch.cuda.is_available() else 'cpu',
           strategy=DDPStrategy(find_unused_parameters=True),
           callbacks=[checkpoint_callback],
           )
-      trainer.fit(model, data_module)
+        trainer.fit(model, data_module)
     else:
-      model.load_state_dict(torch.load(args.checkpoint)['state_dict'])
-      model.eval()
-      model.to('cuda')
-      # Example usage
-      sentence1_nsp = "I went out for shopping to get the missing ingredients."
-      sentence2_nsp = "The fish was swimming in the pond."
-
-      print(model.predict_nsp(sentence1_nsp, sentence2_nsp, bert_tokenizer))
-
-      # Example usage
-      sentence_mask = "I went out for [MASK] to get the missing ingredients."
-      print(model.predict_mlm(sentence_mask, bert_tokenizer))
+        model.load_state_dict(torch.load(args.checkpoint)['state_dict'])
+        model.eval()
+        device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        model.to(device)
+        # Example usage
+        sentence1_nsp = "I went out for shopping to get the missing ingredients."
+        sentence2_nsp = "The fish was swimming in the pond."
+        
+        print(model.predict_nsp(sentence1_nsp, sentence2_nsp, bert_tokenizer))
+        
+        # Example usage
+        sentence_mask = "I went out for [MASK] to get the missing ingredients."
+        print(model.predict_mlm(sentence_mask, bert_tokenizer))
