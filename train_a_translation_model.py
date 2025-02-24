@@ -246,9 +246,11 @@ def infer(ckpt_path):
 if __name__ == "__main__":
     parser = ArgumentParser(description='Language Translation')
     parser.add_argument('--epochs', default=300, type=int, help='number of epochs')
-    parser.add_argument('--checkpoint', default='./checkpt', type=str, help='folder to save checkpoints')
+    parser.add_argument('--output', default='./checkpt', type=str, help='folder to save checkpoints')
+    parser.add_argument('--checkpoint', default='./checkpt/result.ckpt', type=str, help='path to checkpoint')
+    parser.add_argument('--infer', action='store_true', help='infer', default=False, required=False)
     args = parser.parse_args()
-
+    
     dataset = Multi30KDataset()
     train_loader = dataset.get_dataloader(split="train")
     val_loader = dataset.get_dataloader(split="validation")
@@ -257,15 +259,17 @@ if __name__ == "__main__":
         src_vocab_size=len(dataset.vocab_transform["de"]),
         trg_vocab_size=len(dataset.vocab_transform["en"]),
     )
+    if not args.infer:
+        checkpoint_callback = ModelCheckpoint(monitor="val_loss", filename="tra_mod", save_top_k=1, mode="min", dirpath=args.output)
 
-    checkpoint_callback = ModelCheckpoint(monitor="val_loss", filename="tra_mod", save_top_k=1, mode="min", dirpath=args.checkpoint)
-
-    trainer = Trainer(
-        max_epochs=args.epochs,
-        accelerator='gpu' if torch.cuda.is_available() else 'cpu',
-        strategy=DDPStrategy(find_unused_parameters=True),
-        callbacks=[checkpoint_callback],
-    )
-    trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
+        trainer = Trainer(
+            max_epochs=args.epochs,
+            accelerator='gpu' if torch.cuda.is_available() else 'cpu',
+            strategy=DDPStrategy(find_unused_parameters=True),
+            callbacks=[checkpoint_callback],
+        )
+        trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=val_loader)
+    else:
+        infer(args.checkpoint)
 
     print(translate(model, dataset, "Eine weiße Katze rennt auf der Straße ."))
