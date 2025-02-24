@@ -24,4 +24,4 @@ To get results for NSP and MLM
 
 ```
 python pretrain_a_bert_model.py --infer --checkpoint 'address to your checkpoint file'
-```
+```
