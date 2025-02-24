@@ -1,0 +1,9 @@
+torchdata==0.8.0
+spacy==3.7.2
+portalocker==2.10.1
+torchtext==0.15.1
+nltk==3.9.1
+datasets
+transformers
+pytorch-lightning==2.0.9
+
